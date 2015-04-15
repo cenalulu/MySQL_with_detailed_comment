@@ -17,6 +17,13 @@ this program; if not, write to the Free Software Foundation, Inc.,
 
 *****************************************************************************/
 
+/********************************************************************
+=file_decription=
+
+
+=end=
+*********************************************************************/
+
 /******************************************************************//**
 @file dict/dict0dict.cc
 Data dictionary system
@@ -258,6 +265,31 @@ dict_casedn_str(
 	innobase_casedn_str(a);
 }
 
+/********************************************************************
+=func_decription=
+
+=why=
+为什么需要这个函数？
+通过判断两个表是否在同一个数据库中，决定某些操作的后续逻辑。
+例如，drop table中判断外键依赖是否来自于另一个DB
+=end=
+
+=when=
+什么时候会被调用？
+只有两个函数会调用，分别在drop table/drop database和rename table
+的时候被调用
+=end=
+
+=how=
+由于MySQL内部的表名是通过 "Database/TableName" 的方式来存储的。因此通过比较
+两个表名中"/"前的部分是否相等就可以知道两个表是否属于同一个数据库。
+返回True代表传入两表的数据库名相同
+=end=
+
+=end=
+*********************************************************************/
+
+
 /********************************************************************//**
 Checks if the database name in two table names is the same.
 @return	TRUE if same db name */
@@ -278,6 +310,33 @@ dict_tables_have_same_db(
 	}
 	return(FALSE);
 }
+
+/********************************************************************
+=func_decription=
+
+=why=
+为什么需要这个函数？
+由于MySQL内部的可读表名是通过 "Database/TableName" 的方式来存储的。
+有些情况下（例如只要显示表名的场景）需要去除数据库名以更友好的展示交互信息。
+=end=
+
+=when=
+什么时候会被调用？
+dict_print_info_on_foreign_key_in_create_format
+dict_fs2utf8
+ha_innobase::create
+get_foreign_key_info
+等其他共9处调用，都是用于更友好的现实
+=end=
+
+=how=
+由于MySQL内部的表名是通过 "Database/TableName" 的方式来存储的。因此通过
+strchr定位到"/"，返回后面的部分即可
+=end=
+
+=end=
+*********************************************************************/
+
 
 /********************************************************************//**
 Return the end of table name where we have removed dbname and '/'.

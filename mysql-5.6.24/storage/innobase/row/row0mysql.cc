@@ -3940,6 +3940,13 @@ row_drop_table_for_mysql(
 
 			foreign = *it;
 
+			/* 通过两个依据，检查目标表能否被drop。
+			如果是通过drop db导致的drop table，那么该表是否有被
+			其他库的表外键依赖。
+			如果单纯的通过drop table发起，那么直接通过
+			foreign->foreign_table判断是否有除表本身以外的外键依赖。
+			如果有，则无法被drop，并打印出阻止drop的依赖表
+			*/
 			const bool	ref_ok = drop_db
 				&& dict_tables_have_same_db(
 					name,
